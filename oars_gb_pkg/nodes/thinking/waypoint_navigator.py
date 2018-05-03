@@ -28,7 +28,7 @@ class WaypointNavigator:
         :param use_ros: If True, will attempt initialization of ROS node and registration
         of publishers and subscribers. If False, will run in ROS-less unit testing mode.
         """
-        self.using_ros = True if rospy is not None and use_ros else False
+        self.using_ros = False #True if rospy is not None and use_ros else False
         self.longitude = None
         self.latitude = None
         self.wp_list = None
@@ -56,10 +56,12 @@ class WaypointNavigator:
         self.longitude = msg.x
         self.latitude = msg.y
         # Check if boat GPS coordinates are within proximity radius to consider waypoint reached
-        if self.have_reached_wp():
+        print("AYYY BOI This is OLD", self.next_wp)
+        if self.have_reached_wp():  # and self.next_wp == list(self.wp_list).index(self.next_wp):
             if self.using_ros:
                 self.waypoint_pub.publish(self._generate_waypoint_list_msg())
-            self.next_wp = self.wp_list.popleft()  # Progress to the next waypoint
+            self.next_wp = self.wp_list.popleft()  # Output the next waypoint
+            print("AYYY BOI This is NEW", self.next_wp)
         if self.using_ros and self.next_wp:  # Don't do if we're not using ROS or if we don't know the next waypoint yet
             self.heading_pub.publish(self.calculate_desired_heading())
 
@@ -72,6 +74,7 @@ class WaypointNavigator:
         if self.next_wp is None or self.longitude is None:
             return False
         current_pos = (self.longitude, self.latitude)
+        print("THIS BE DISTANCE", dist_between_points(self.next_wp, current_pos))
         return dist_between_points(self.next_wp, current_pos) <= self.waypoint_radius
 
     def _generate_waypoint_list_msg(self):
@@ -90,6 +93,7 @@ class WaypointNavigator:
         :type wp_list_msg: WaypointList
         """
         self.wp_list = deque(zip(wp_list_msg.longitudes.data, wp_list_msg.latitudes.data))  # Use queue of tuples for waypoints
+        #self.wp_list = deque(zip(wp_list_msg.longitudes, wp_list_msg.latitudes))
         self.next_wp = self.wp_list.popleft()  # Get the next waypoint
         if self.using_ros and self.latitude:  # Don't do if not using ROS or if we don't know our location yet
             self.heading_pub.publish(self.calculate_desired_heading())

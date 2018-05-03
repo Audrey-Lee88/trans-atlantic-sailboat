@@ -24,8 +24,7 @@ def dist_between_points(p1, p2, earth_radius=6371e3):
     delta_lat = radians(lat2 - lat1)
     delta_lon = radians(lon2 - lon1)
 
-    a = sin(delta_lat / 2) * sin(delta_lat / 2) + cos(lat1) * cos(lat2) * sin(delta_lon / 2) * sin(delta_lon / 2)
-
+    a = sin(delta_lat/2.0)**2 + cos(lat1)*cos(lat2)*sin(delta_lon/2.0)**2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
     return earth_radius * c
